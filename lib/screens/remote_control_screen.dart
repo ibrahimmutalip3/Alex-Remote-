@@ -4,8 +4,13 @@ import '../services/remote_device_service.dart';
 
 class RemoteControlScreen extends StatefulWidget {
   final RemoteDeviceService device;
+  final String deviceName;
 
-  const RemoteControlScreen({super.key, required this.device});
+  const RemoteControlScreen({
+    super.key,
+    required this.device,
+    required this.deviceName,
+  });
 
   @override
   State<RemoteControlScreen> createState() => _RemoteControlScreenState();
@@ -49,9 +54,7 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
           ),
           padding: EdgeInsets.zero,
         ),
-        child: icon == null
-            ? Text(label)
-            : Icon(icon, size: 27),
+        child: icon == null ? Text(label) : Icon(icon, size: 27),
       ),
     );
   }
@@ -60,7 +63,7 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Alex Remote'),
+        title: Text(widget.deviceName),
         actions: [
           IconButton(
             icon: const Icon(Icons.link_off),
@@ -78,13 +81,13 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
           padding: const EdgeInsets.all(22),
           child: Column(
             children: [
-              const Row(
+              Row(
                 children: [
-                  Icon(Icons.circle, color: Color(0xFFD8FF64), size: 9),
-                  SizedBox(width: 9),
-                  Text('SAMSUNG GALAXY A12'),
-                  Spacer(),
-                  Text(
+                  const Icon(Icons.circle,
+                      color: Color(0xFFD8FF64), size: 9),
+                  const SizedBox(width: 9),
+                  Expanded(child: Text(widget.deviceName)),
+                  const Text(
                     'ONLINE',
                     style: TextStyle(color: Color(0xFFD8FF64)),
                   ),
@@ -99,36 +102,24 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              control(
-                'Up',
-                'KEYCODE_DPAD_UP',
-                icon: Icons.keyboard_arrow_up,
-              ),
+              control('Up', 'KEYCODE_DPAD_UP',
+                  icon: Icons.keyboard_arrow_up),
               const SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  control(
-                    'Left',
-                    'KEYCODE_DPAD_LEFT',
-                    icon: Icons.keyboard_arrow_left,
-                  ),
+                  control('Left', 'KEYCODE_DPAD_LEFT',
+                      icon: Icons.keyboard_arrow_left),
                   const SizedBox(width: 10),
                   control('OK', 'KEYCODE_DPAD_CENTER'),
                   const SizedBox(width: 10),
-                  control(
-                    'Right',
-                    'KEYCODE_DPAD_RIGHT',
-                    icon: Icons.keyboard_arrow_right,
-                  ),
+                  control('Right', 'KEYCODE_DPAD_RIGHT',
+                      icon: Icons.keyboard_arrow_right),
                 ],
               ),
               const SizedBox(height: 10),
-              control(
-                'Down',
-                'KEYCODE_DPAD_DOWN',
-                icon: Icons.keyboard_arrow_down,
-              ),
+              control('Down', 'KEYCODE_DPAD_DOWN',
+                  icon: Icons.keyboard_arrow_down),
               const Spacer(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -148,10 +139,8 @@ class _RemoteControlScreenState extends State<RemoteControlScreen> {
                 ],
               ),
               const Spacer(),
-              Text(
-                status,
-                style: const TextStyle(color: Colors.white54),
-              ),
+              Text(status,
+                  style: const TextStyle(color: Colors.white54)),
             ],
           ),
         ),
