@@ -1,0 +1,42 @@
+
+name: iOS Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Generate iOS platform
+        run: flutter create --platforms=ios --org com.alexremote --project-name alex_remote .
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS app
+        run: flutter build ios --release --no-codesign
+
+      - name: Package unsigned IPA
+        run: |
+          mkdir -p Payload
+          cp -R build/ios/iphoneos/Runner.app Payload/
+          ditto -c -k --sequesterRsrc --keepParent Payload AlexRemote-unsigned.ipa
+
+      - name: Upload unsigned IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: AlexRemote-unsigned-IPA
+          path: AlexRemote-unsigned.ipa
+          if-no-files-found: error
