@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'screens/connect_screen.dart';
 
 void main() {
   runApp(const AlexRemoteApp());
@@ -16,7 +17,6 @@ class AlexRemoteApp extends StatelessWidget {
       theme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: const Color(0xFF0B0B0D),
-        fontFamily: 'DM Sans',
         colorScheme: const ColorScheme.dark(
           primary: Color(0xFFD8FF64),
           surface: Color(0xFF171719),
@@ -40,7 +40,6 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 24),
-
               const Text(
                 'ALEX REMOTE',
                 style: TextStyle(
@@ -50,9 +49,7 @@ class HomeScreen extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
               const SizedBox(height: 12),
-
               const Text(
                 'Remote control.',
                 style: TextStyle(
@@ -60,7 +57,6 @@ class HomeScreen extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-
               const Text(
                 'Control your Android device remotely.',
                 style: TextStyle(
@@ -68,9 +64,7 @@ class HomeScreen extends StatelessWidget {
                   color: Colors.white54,
                 ),
               ),
-
               const SizedBox(height: 40),
-
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(22),
@@ -78,7 +72,7 @@ class HomeScreen extends StatelessWidget {
                   color: const Color(0xFF171719),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.07),
+                    color: Colors.white10,
                   ),
                 ),
                 child: Column(
@@ -89,9 +83,7 @@ class HomeScreen extends StatelessWidget {
                       size: 32,
                       color: Color(0xFFD8FF64),
                     ),
-
                     const SizedBox(height: 20),
-
                     const Text(
                       'Samsung Galaxy A12',
                       style: TextStyle(
@@ -99,9 +91,7 @@ class HomeScreen extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-
                     const SizedBox(height: 8),
-
                     const Row(
                       children: [
                         Icon(
@@ -119,14 +109,19 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 24),
-
                     SizedBox(
                       width: double.infinity,
                       height: 52,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ConnectScreen(),
+                            ),
+                          );
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFD8FF64),
                           foregroundColor: Colors.black,
@@ -146,9 +141,7 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
               const Spacer(),
-
               const Center(
                 child: Text(
                   'ALEX REMOTE • VERSION 1.0',
