@@ -102,7 +102,10 @@ class _ConnectScreenState extends State<ConnectScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => RemoteControlScreen(device: device),
+            builder: (_) => RemoteControlScreen(
+              device: device,
+              deviceName: 'Android device',
+            ),
           ),
         );
       }
