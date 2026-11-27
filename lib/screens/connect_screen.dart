@@ -98,6 +98,14 @@ class _ConnectScreenState extends State<ConnectScreen> {
             ? 'Connected to Android.'
             : 'Connection failed. Check the ADB port.';
       });
+      if (result && mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => RemoteControlScreen(device: device),
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() => status = 'Connection error: $e');
