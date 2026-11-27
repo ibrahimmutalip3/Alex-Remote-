@@ -114,6 +114,7 @@ class _ConnectScreenState extends State<ConnectScreen> {
         name: deviceName,
         host: host,
         port: port,
+        lastConnectedAt: DateTime.now().millisecondsSinceEpoch,
       );
 
       await store.addOrUpdate(savedDevice);
