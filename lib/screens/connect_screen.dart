@@ -1,6 +1,10 @@
-import 'remote_control_screen.dart';
+
 import 'package:flutter/material.dart';
+
+import '../models/saved_device.dart';
 import '../services/remote_device_service.dart';
+import '../services/saved_device_store.dart';
+import 'remote_control_screen.dart';
 
 class ConnectScreen extends StatefulWidget {
   const ConnectScreen({super.key});
@@ -10,12 +14,14 @@ class ConnectScreen extends StatefulWidget {
 }
 
 class _ConnectScreenState extends State<ConnectScreen> {
+  final name = TextEditingController(text: 'Samsung Galaxy A12');
   final address = TextEditingController();
   final pairingPort = TextEditingController();
   final pairingCode = TextEditingController();
   final connectPort = TextEditingController();
 
   final device = RemoteDeviceService();
+  final store = SavedDeviceStore();
 
   bool busy = false;
   bool paired = false;
@@ -24,6 +30,7 @@ class _ConnectScreenState extends State<ConnectScreen> {
 
   @override
   void dispose() {
+    name.dispose();
     address.dispose();
     pairingPort.dispose();
     pairingCode.dispose();
@@ -60,6 +67,7 @@ class _ConnectScreenState extends State<ConnectScreen> {
       );
 
       if (!mounted) return;
+
       setState(() {
         paired = result;
         status = result
@@ -77,9 +85,10 @@ class _ConnectScreenState extends State<ConnectScreen> {
   Future<void> connectDevice() async {
     final host = address.text.trim();
     final port = readPort(connectPort);
+    final deviceName = name.text.trim();
 
-    if (host.isEmpty || port == null) {
-      setState(() => status = 'Enter a valid IP and ADB port.');
+    if (deviceName.isEmpty || host.isEmpty || port == null) {
+      setState(() => status = 'Enter device name, IP and valid ADB port.');
       return;
     }
 
@@ -91,25 +100,45 @@ class _ConnectScreenState extends State<ConnectScreen> {
     try {
       final result = await device.connect(host: host, port: port);
 
-      if (!mounted) return;
-      setState(() {
-        connected = result;
-        status = result
-            ? 'Connected to Android.'
-            : 'Connection failed. Check the ADB port.';
-      });
-      if (result && mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (_) => RemoteControlScreen(
-              device: device,
-              deviceName: 'Android device',
-            ),
-          ),
-        );
+      if (!result) {
+        if (!mounted) return;
+        setState(() {
+          connected = false;
+          status = 'Connection failed. Check the ADB port.';
+        });
+        return;
       }
+
+      final savedDevice = SavedDevice(
+        id: '$host:$port',
+        name: deviceName,
+        host: host,
+        port: port,
+      );
+
+      await store.addOrUpdate(savedDevice);
+
+      if (!mounted) {
+        await device.disconnect();
+        return;
+      }
+
+      setState(() {
+        connected = true;
+        status = 'Connected and saved.';
+      });
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => RemoteControlScreen(
+            device: device,
+            deviceName: deviceName,
+          ),
+        ),
+      );
     } catch (e) {
+      await device.disconnect();
       if (!mounted) return;
       setState(() => status = 'Connection error: $e');
     } finally {
@@ -192,7 +221,7 @@ class _ConnectScreenState extends State<ConnectScreen> {
             ),
             const SizedBox(height: 20),
             const Text(
-              'Samsung Galaxy A12',
+              'New Android device',
               style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
@@ -201,6 +230,12 @@ class _ConnectScreenState extends State<ConnectScreen> {
               style: TextStyle(color: Colors.white54),
             ),
             const SizedBox(height: 28),
+            input(
+              label: 'Device name',
+              hint: 'My Android',
+              controller: name,
+            ),
+            const SizedBox(height: 20),
             input(
               label: 'IP address',
               hint: '192.168.1.100',
@@ -227,7 +262,10 @@ class _ConnectScreenState extends State<ConnectScreen> {
               type: TextInputType.number,
             ),
             const SizedBox(height: 14),
-            action(busy ? 'Please wait...' : 'Pair device', pairDevice),
+            action(
+              busy ? 'Please wait...' : 'Pair device',
+              pairDevice,
+            ),
             const SizedBox(height: 28),
             const Text(
               '2. ADB connection',
@@ -241,7 +279,10 @@ class _ConnectScreenState extends State<ConnectScreen> {
               type: TextInputType.number,
             ),
             const SizedBox(height: 14),
-            action(busy ? 'Please wait...' : 'Connect', connectDevice),
+            action(
+              busy ? 'Please wait...' : 'Connect and save',
+              connectDevice,
+            ),
             if (connected) ...[
               const SizedBox(height: 12),
               OutlinedButton(
