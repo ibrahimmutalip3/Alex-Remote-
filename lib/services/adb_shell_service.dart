@@ -17,7 +17,7 @@ class AdbShellService {
     });
 
     await shell.writeString('$command\n');
-    await Future.delayed(const Duration(seconds: 2));
+    await Future.delayed(const Duration(milliseconds: 350));
 
     await subscription.cancel();
     await shell.sendClose();
