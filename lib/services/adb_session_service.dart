@@ -9,6 +9,7 @@ class AdbSessionService {
   AdbConnection? _connection;
 
   bool get isConnected => _connection != null;
+  AdbConnection? get connection => _connection;
 
   Future<bool> connect({
     required String host,
