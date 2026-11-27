@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import '../services/connection_service.dart';
 
 class ConnectScreen extends StatefulWidget {
   const ConnectScreen({super.key});
@@ -13,12 +14,46 @@ class _ConnectScreenState extends State<ConnectScreen> {
   final portController = TextEditingController();
   final codeController = TextEditingController();
 
+  final connectionService = ConnectionService();
+
+  bool isChecking = false;
+  String status = 'Not connected';
+
   @override
   void dispose() {
     addressController.dispose();
     portController.dispose();
     codeController.dispose();
     super.dispose();
+  }
+
+  Future<void> checkConnection() async {
+    final address = addressController.text.trim();
+    final port = int.tryParse(portController.text.trim());
+
+    if (address.isEmpty || port == null || port < 1 || port > 65535) {
+      setState(() => status = 'Enter a valid address and port.');
+      return;
+    }
+
+    setState(() {
+      isChecking = true;
+      status = 'Checking connection...';
+    });
+
+    final result = await connectionService.checkAddress(
+      address: address,
+      port: port,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      isChecking = false;
+      status = result
+          ? 'Port is reachable. ADB pairing is not completed.'
+          : 'Could not reach this port.';
+    });
   }
 
   Widget inputField({
@@ -30,13 +65,7 @@ class _ConnectScreenState extends State<ConnectScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 13,
-          ),
-        ),
+        Text(label, style: const TextStyle(color: Colors.white70)),
         const SizedBox(height: 9),
         TextField(
           controller: controller,
@@ -73,80 +102,53 @@ class _ConnectScreenState extends State<ConnectScreen> {
               color: Color(0xFFD8FF64),
               size: 48,
             ),
-
             const SizedBox(height: 20),
-
             const Text(
-              'Pair your Android',
-              style: TextStyle(
-                fontSize: 27,
-                fontWeight: FontWeight.bold,
-              ),
+              'Connect your Android',
+              style: TextStyle(fontSize: 27, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 10),
-
             const Text(
-              'Enter the connection details shown in Android Wireless Debugging.',
-              style: TextStyle(
-                color: Colors.white54,
-                height: 1.5,
-              ),
+              'Enter the details shown in Android Wireless Debugging.',
+              style: TextStyle(color: Colors.white54, height: 1.5),
             ),
-
             const SizedBox(height: 32),
-
             inputField(
               label: 'IP address',
               hint: '192.168.1.100',
               controller: addressController,
               keyboardType: TextInputType.url,
             ),
-
             const SizedBox(height: 20),
-
             inputField(
               label: 'Pairing port',
               hint: 'Example: 37000',
               controller: portController,
               keyboardType: TextInputType.number,
             ),
-
             const SizedBox(height: 20),
-
             inputField(
               label: 'Pairing code',
               hint: 'Enter pairing code',
               controller: codeController,
               keyboardType: TextInputType.number,
             ),
-
-            const SizedBox(height: 32),
-
+            const SizedBox(height: 24),
+            Text(
+              status,
+              style: const TextStyle(color: Colors.white70),
+            ),
+            const SizedBox(height: 16),
             SizedBox(
               height: 54,
               child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Connection is not implemented yet.',
-                      ),
-                    ),
-                  );
-                },
+                onPressed: isChecking ? null : checkConnection,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFD8FF64),
                   foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
                 ),
-                child: const Text(
-                  'Pair device',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Text(
+                  isChecking ? 'Checking...' : 'Check connection',
                 ),
               ),
             ),
