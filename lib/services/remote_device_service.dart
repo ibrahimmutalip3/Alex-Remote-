@@ -1,48 +1,75 @@
 
-import 'adb_session_service.dart';
-import 'adb_shell_service.dart';
-import 'wireless_pairing_service.dart';
+import 'package:adb_direct/adb_direct.dart';
+
+import 'direct_adb_key_manager.dart';
 
 class RemoteDeviceService {
-  final WirelessPairingService _pairing = WirelessPairingService();
-  final AdbSessionService _session = AdbSessionService();
+  final DirectAdbKeyManager _keyManager =
+      DirectAdbKeyManager();
 
-  bool get isConnected => _session.isConnected;
+  AdbConnection? _connection;
+
+  bool get isConnected =>
+      _connection != null && !_connection!.isClosed;
 
   Future<bool> pair({
     required String host,
     required int pairingPort,
     required String code,
-  }) {
-    return _pairing.pair(
-      host: host,
-      port: pairingPort,
-      pairingCode: code,
-    );
+  }) async {
+    final key = await _keyManager.loadOrCreate();
+
+    try {
+      await AdbPairing.pair(
+        host,
+        pairingPort,
+        code: code,
+        key: key,
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<bool> connect({
     required String host,
     required int port,
-  }) {
-    return _session.connect(
-      host: host,
-      port: port,
-    );
+  }) async {
+    await disconnect();
+
+    final key = await _keyManager.loadOrCreate();
+
+    try {
+      _connection = await AdbConnection.connect(
+        host,
+        port,
+        key: key,
+      );
+      return true;
+    } catch (_) {
+      _connection = null;
+      return false;
+    }
   }
 
   Future<String> execute(String command) async {
-    final connection = _session.connection;
+    final connection = _connection;
 
-    if (connection == null) {
+    if (connection == null || connection.isClosed) {
       throw StateError('Device is not connected');
     }
 
-    final shell = AdbShellService(connection);
-    return shell.execute(command);
+    final result = await connection.shell.run(command);
+    return result.stdoutText;
   }
 
-  Future<void> disconnect() {
-    return _session.disconnect();
+  Future<void> disconnect() async {
+    final connection = _connection;
+    _connection = null;
+
+    if (connection != null && !connection.isClosed) {
+      await connection.close();
+    }
   }
 }
